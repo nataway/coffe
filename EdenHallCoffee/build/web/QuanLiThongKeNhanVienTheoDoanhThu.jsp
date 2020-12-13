@@ -1,0 +1,115 @@
+
+
+<%@page import="java.sql.ResultSet"%>
+<%@page import="java.sql.Statement"%>
+<%@page import="java.sql.DriverManager"%>
+<%@page import="java.sql.Connection"%>
+<%@page import="java.sql.Connection"%>
+<%@page import="java.util.ArrayList"%>
+<%@page import="Entity.ThanhVien"%>
+<%@page import="Data.DAO"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Admin</title>
+
+        <!-- Bootstrap CSS -->
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+
+        <style>
+            #noidung{
+                height: 550px;
+                overflow: auto;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- jQuery -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <!-- Bootstrap JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+        <div class="row">
+            
+            <nav class="navbar navbar-inverse">
+                <ul class="nav navbar-nav">
+                    <li>
+                        <a href="http://localhost:8080/EdenHallCoffee/QuanLiHome.jsp" style="padding-left: 50px;">Trang chủ</a>
+                    </li>
+                    <li>
+                        <a href="http://localhost:8080/EdenHallCoffee/QuanLiKho.jsp">Quản lí kho</a>
+                    </li>
+                    <li>
+                        <a href="http://localhost:8080/EdenHallCoffee/QuanLiNhanVien.jsp">Quản lí nhân viên</a>
+                    </li>  
+                    <li style="padding-top: 15px; color: white;font-size: 16px;">Thống kê</li>  
+                </ul>
+            </nav>
+            
+        </div>
+        
+        <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
+                <img src="Logo.png" style="width: 320px; height: 320px;" >
+        </div>
+        <div id="noidung" class="col-xs-7 col-sm-7 col-md-7 col-lg-7" >
+            <div class="panel panel-default">
+                <!-- Default panel contents -->
+                <div class="panel-heading">Thống kê nhân viên theo doanh thu</div>
+                    <!-- Table -->
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>ID</th>
+                                <th>Tên nhân viên</th>
+                                <th>Tổng doanh thu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <%
+                                int stt = 1;
+                                String startDate = (String)request.getAttribute("startDate");
+                                String endDate = (String)request.getAttribute("endDate");
+                                String connectionURL = "jdbc:mysql://localhost:3306/edenhallcoffee?autoReconnect=true&useSSL=false";
+                                String sql = "Select tbl1.Id, tbl1.ten, sum(tongTien) as TongDoanhThu  " +
+                                             "FROM " +
+                                             "	(SELECT tblthanhvien.id as Id, tblthanhvien.ten as Ten, tbldonhang.tenSanPham as TenSP, tbldonhang.tongTien as tongTien " +
+                                             "    FROM tblthanhvien,tblhoadon,tbldonhang " +
+                                             "	 WHERE tblthanhvien.id = tblhoadon.idNhanVien " +
+                                             "		AND tbldonhang.id = tblhoadon.idDonHang " +
+                                             "		AND tbldonhang.ngay >= '"+ startDate+
+                                             "'		AND tbldonhang.ngay <= '"+endDate+ "') As tbl1 " +
+                                             "group by tbl1.Id " +
+                                             "order by TongDoanhThu desc ";
+                                try {
+                                    Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+                                    Connection con = DriverManager.getConnection(connectionURL,"root","12345678");
+
+                                    Statement st = con.createStatement();
+                                    ResultSet rs = st.executeQuery(sql);
+                                    while(rs.next()){
+                                    %>
+                                        <tr>
+                                            <td><%= stt %></td>
+                                            <% int idNhanVien = rs.getInt(1); %>
+                                            <td><%= idNhanVien %></td>
+                                            <td><%= rs.getString(2) %></td>
+                                            <td><%= rs.getInt(3) %> VNĐ</td>
+                                        </tr>
+                                    <%    
+                                        stt++;
+                                    }
+                                    con.close();
+                                } catch (Exception e) {
+                                }
+                            %>
+                        </tbody>
+                    </table>
+            </div> 
+        </div>
+    </body>
+</html>
